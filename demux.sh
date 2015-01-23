@@ -30,7 +30,7 @@ INPUTPATH=$2		# parameter 2 is the input path and filename
 #OPATH=$4			# parameter 4 for not use original directory
 
 # defines
-COMPATH=/home/pi/qnap/tv			# alternative inputpath if not specified in the command line (=actual directory if not changed here)
+COMPATH=$PWD				# alternative inputpath if not specified in the command line (=actual directory if not changed here)
 WORKINGDIRECTORY=/media/usbstick	# a temporary directory
 
 PROJECTX=/home/pi/qnap/tv/ProjectX.jar	# path to ProjectX
