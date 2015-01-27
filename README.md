@@ -35,5 +35,5 @@ Tvheadend:
 ./demux.sh %b %f [MODE] [AUDIO]
 
          		[] = optional
-		        MODE = DVD, MPG or DEMUX
+		        MODE = DVD, MPEG or DEMUX
 		        AUDIO = AUTO, 1 or 2
