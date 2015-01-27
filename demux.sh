@@ -12,7 +12,10 @@
 #
 # this script can be used stand-alone or as post-processing script for tv-headend.
 #
-# command line: ./demux.sh inputfilename.ts /path/to/inputfilename.ts
+# command line: ./demux.sh inputfilename.ts [/path/to/inputfilename.ts] [MODE] [AUDIO]
+# 		[] = optional
+#		MODE = DVD, MPG or DEMUX
+#		AUDIO = AUTO, 1 or 2
 #
 # todo
 # - add documentation
@@ -27,18 +30,18 @@
 #parameters
 INPUTFILE=$1					#parameter 1 is the input filename
 INPUTPATH=$2					#parameter 2 is the input path and filename
-MODE=$3   						#parameter 3 for DVD, MPEG or demux mode
-AUDIO=$4						#parameter 4 for AUTO choose (below defined) languages or use first 1 or 2 languages
+MODE=$3   					#parameter 3 for DVD, MPEG or DEMUX mode
+AUDIO=$4					#parameter 4 for AUTO choose (below defined) languages or use first 1 or 2 languages
 
 # defines
 COMPATH=$PWD				# alternative inputpath if not specified in the command line (=actual directory if not changed here)
 WORKINGDIRECTORY=/media/usbstick	# a temporary directory
 
 PROJECTX=/home/pi/qnap/tv/ProjectX.jar	# path to ProjectX
-MPLEX=/usr/local/bin/mplex				# path to mplex
-DVDAUTHOR=/usr/bin/dvdauthor			# path to dvdauthor
-MEDIAINFO=/usr/bin/mediainfo			# path to mediainfo
-FFMPEG=/usr/bin/ffmpeg					# path to ffmpeg
+MPLEX=/usr/local/bin/mplex		# path to mplex
+DVDAUTHOR=/usr/bin/dvdauthor		# path to dvdauthor
+MEDIAINFO=/usr/bin/mediainfo		# path to mediainfo
+FFMPEG=/usr/bin/ffmpeg			# path to ffmpeg
 
 # check if inputfile is specified
 if [ ! "$INPUTFILE" ]
