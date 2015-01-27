@@ -57,7 +57,7 @@ if [ ! "$INPUTPATH" ]
 		INPUTPATH="$COMPATH/$INPUTFILE"
 fi
 
-if inputfile *.mkv copy to *ts using ffmpeg
+#if inputfile *.mkv copy to *ts using ffmpeg
 if [ "$INPUTFILE.mkv" ]
 	then
 		NAME=$(basename "$INPUTFILE" .mkv)		# delete ext of filename
