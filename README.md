@@ -13,3 +13,27 @@ Due the fact that the dvb-c (mpeg2-ts) streams are a little bit tricky to handle
 decided to write a script that demux, cut and mux my recordings and finnally author a DVD - without re-encoding.
 
 The script runs well on raspbian and should run on other (debian)-distributions too.
+
+Requirements: 
+--------------
+1. ProjectX 
+2. comskip
+3. mplex (from mjpegtools) 
+4. dvdauthor.
+5. optional: ffmpeg and mediainfo.
+
+This script can be used stand-alone or as post-processing script for tv-headend.
+
+
+Command line:
+-------------
+./demux.sh inputfilename.ts [/path/to/inputfilename.ts] [MODE] [AUDIO]
+
+
+Tvheadend: 
+-----------
+./demux.sh %b %f [MODE] [AUDIO]
+
+         		[] = optional
+		        MODE = DVD, MPG or DEMUX
+		        AUDIO = AUTO, 1 or 2
