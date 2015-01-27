@@ -28,25 +28,26 @@
 
 
 #parameters
-INPUTFILE=$1					#parameter 1 is the input filename
-INPUTPATH=$2					#parameter 2 is the input path and filename
-MODE=$3   					#parameter 3 for DVD, MPEG or DEMUX mode
-AUDIO=$4					#parameter 4 for AUTO choose (below defined) languages or use first 1 or 2 languages
+INPUTFILE=$1					# parameter 1 is the input filename
+INPUTPATH=$2					# parameter 2 is the input path and filename
+MODE=$3   						# parameter 3 for DVD, MPEG or only demux mode
+AUDIO=$4						# parameter 4 for AUTO choose (below defined) languages or 1 or 2 languages
+COMSKIP=$5						# parameter 5 for use comskip...write anything to active
 
 # defines
-COMPATH=$PWD				# alternative inputpath if not specified in the command line (=actual directory if not changed here)
+COMPATH=$PWD						# alternative inputpath if not specified in the command line (=actual directory if not changed here)
 WORKINGDIRECTORY=/media/usbstick	# a temporary directory
 
-PROJECTX=/home/pi/qnap/tv/ProjectX.jar	# path to ProjectX
-MPLEX=/usr/local/bin/mplex		# path to mplex
-DVDAUTHOR=/usr/bin/dvdauthor		# path to dvdauthor
-MEDIAINFO=/usr/bin/mediainfo		# path to mediainfo
-FFMPEG=/usr/bin/ffmpeg			# path to ffmpeg
+PROJECTX=$COMPATH/ProjectX.jar			# path to ProjectX
+MPLEX=/usr/local/bin/mplex				# path to mplex
+DVDAUTHOR=/usr/bin/dvdauthor			# path to dvdauthor
+MEDIAINFO=/usr/bin/mediainfo			# path to mediainfo
+FFMPEG=/usr/bin/ffmpeg					# path to ffmpeg
 
 # check if inputfile is specified
 if [ ! "$INPUTFILE" ]
 	then
-		echo "usage: ./demux.sh file [fullpath to file] [NODVD] [OPATH]"
+		echo "usage: ./demux.sh file [fullpath to file] [MODE=DVD/MPEG/DEMUX] [AUDIO=AUTO/1/2] [COMSKIP]"
 		exit
 fi
 
@@ -56,14 +57,14 @@ if [ ! "$INPUTPATH" ]
 		INPUTPATH="$COMPATH/$INPUTFILE"
 fi
 
-# if inputfile *.mkv copy to *ts using ffmpeg
-#if [ "$INPUTFILE.mkv" ]
-#	then
-#		NAME=$(basename "$INPUTFILE" .mkv)		# delete ext of filename
-#		$FFMPEG -i "$INPUTFILE" -acodec copy -vcodec copy -f mpegts "$NAME.ts" | tee -a "$LOG"
-#	else
+if inputfile *.mkv copy to *ts using ffmpeg
+if [ "$INPUTFILE.mkv" ]
+	then
+		NAME=$(basename "$INPUTFILE" .mkv)		# delete ext of filename
+		$FFMPEG -i "$INPUTFILE" -acodec copy -vcodec copy -f mpegts "$NAME.ts" | tee -a "$LOG"
+	else
 		NAME=$(basename "$INPUTFILE" .ts)		# delete ext of filename
-#fi
+fi
 
 OUTPUTDIRECTORY="$COMPATH/$NAME"		# the output directory is a subdirectory in the inputdirectory
 LOG="$OUTPUTDIRECTORY/$NAME.log"		# the logfile is the inputfilename with ext log
@@ -90,19 +91,14 @@ echo "completepath: $COMPATH" | tee -a "$LOG"
 echo "workingpath: $WORKINGDIRECTORY" | tee -a "$LOG"
 echo "logfile: $LOG" | tee -a "$LOG"
 
-# read mediainfo and write to log
-$MEDIAINFO "$INPUTPATH" | tee -a $LOG
-
-: << kommentar
-#if [ ! -f "$COMPATH/$NAME.Xcl" ]
-#	then
-#		echo "-----------------------------------" | tee -a "$LOG"
-#		/bin/date | tee -a "$LOG"
-#		echo "run comskip for $INPUTFILE" | tee -a "$LOG"
-#		comskip -t --ini=tveurope.ini $INPUTFILE | tee -a "$LOG"
+if [ ! -f "$COMPATH/$NAME.Xcl" && $COMSKIP ]
+	then
+		echo "-----------------------------------" | tee -a "$LOG"
+		/bin/date | tee -a "$LOG"
+		echo "run comskip for $INPUTFILE" | tee -a "$LOG"
+		comskip -t --ini=tveurope.ini $INPUTFILE | tee -a "$LOG"
 		cp "$NAME.ts.Xcl" "$COMPATH/$NAME.Xcl" #workourround wrong ext
-#fi
-kommentar
+fi
 
 echo "-----------------------------------" | tee -a "$LOG"
 echo "demux file $INPUTFILE" | tee -a "$LOG"
@@ -113,6 +109,9 @@ if [ -f "$WORKINGDIRECTORY/$NAME.m2v" ]
 	then
 		echo "demuxed video files already existing" | tee -a "$LOG"
 	else
+		# read mediainfo and write to log
+		$MEDIAINFO "$INPUTPATH" | tee -a "$LOG"
+		
 		# check if cut information is exising
 		if [ -f "$COMPATH/$NAME.Xcl" ];
 			then
@@ -202,28 +201,25 @@ echo "mux in new file $NAME.mpg" | tee -a "$LOG"
 if [ "$LANG" -eq 1 ]
 	then
 		$MPLEX -f 8 -M -o "$WORKINGDIRECTORY/$NAME.mpg" "$WORKINGDIRECTORY/$NAME.m2v" "$LANG1" | tee -a "$LOG"
-		if [ $MODE != MPG ]; then $DVDAUTHOR -o "$OUTPUTDIRECTORY" -t "$WORKINGDIRECTORY/$NAME.mpg" -a mp2+$LANGTAG1 | tee -a "$LOG"; fi
+		if [ $MODE != MPEG ]; then $DVDAUTHOR -o "$OUTPUTDIRECTORY" -t "$WORKINGDIRECTORY/$NAME.mpg" -a mp2+$LANGTAG1 | tee -a "$LOG"; fi
 elif [ "$LANG" -eq 2 ]
 	then
 		$MPLEX -f 8 -M -o "$WORKINGDIRECTORY/$NAME.mpg" "$WORKINGDIRECTORY/$NAME.m2v" "$LANG1" "$LANG2"| tee -a "$LOG"
-		if [ $MODE != MPG ]; then $DVDAUTHOR -o "$OUTPUTDIRECTORY" -t "$WORKINGDIRECTORY/$NAME.mpg" -a mp2+$LANGTAG1,mp2+$LANGTAG2 | tee -a "$LOG"; fi
+		if [ $MODE != MPEG ]; then $DVDAUTHOR -o "$OUTPUTDIRECTORY" -t "$WORKINGDIRECTORY/$NAME.mpg" -a mp2+$LANGTAG1,mp2+$LANGTAG2 | tee -a "$LOG"; fi
 elif [ "$LANG" -eq 3 ]
 	then
 		$MPLEX -f 8 -M -o "$WORKINGDIRECTORY/$NAME.mpg" "$WORKINGDIRECTORY/$NAME.m2v" "$LANG1" "$LANG2" "$LANG3"| tee -a "$LOG"
-		if [ $MODE != MPG ]; then $DVDAUTHOR -o "$OUTPUTDIRECTORY" -t "$WORKINGDIRECTORY/$NAME.mpg" -a mp2+$LANGTAG1,mp2+$LANGTAG2,mp2+$LANGTAG3 | tee -a "$LOG"; fi
+		if [ $MODE != MPEG ]; then $DVDAUTHOR -o "$OUTPUTDIRECTORY" -t "$WORKINGDIRECTORY/$NAME.mpg" -a mp2+$LANGTAG1,mp2+$LANGTAG2,mp2+$LANGTAG3 | tee -a "$LOG"; fi
 else 
 	echo "exit: no language file to mux" | tee -a "$LOG"
 	exit
 fi
-
-if [ "$MODE" != "MPG" ]
-	then
-		echo "-----------------------------------" | tee -a "$LOG"
-		/bin/date | tee -a "$LOG"
-		echo "authoring dvd" | tee -a "$LOG"
-		export VIDEO_FORMAT=PAL
-		$DVDAUTHOR -o "$OUTPUTDIRECTORY" -T | tee -a "$LOG"
-fi
+ 
+echo "-----------------------------------" | tee -a "$LOG"
+/bin/date | tee -a "$LOG"
+echo "authoring dvd" | tee -a "$LOG"
+export VIDEO_FORMAT=PAL
+if [ "$MODE" != "MPEG" ]; then $DVDAUTHOR -o "$OUTPUTDIRECTORY" -T | tee -a "$LOG"; fi
 
 echo "-----------------------------------" | tee -a "$LOG"
 /bin/date | tee -a "$LOG"
