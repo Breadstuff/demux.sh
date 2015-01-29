@@ -58,7 +58,7 @@ if [ ! "$INPUTPATH" ]
 fi
 
 #if inputfile *.mkv copy to *ts using ffmpeg
-if [ "$INPUTFILE.mkv" ]
+if [ -f "$INPUTFILE.mkv" ]
 	then
 		NAME=$(basename "$INPUTFILE" .mkv)		# delete ext of filename
 		$FFMPEG -i "$INPUTFILE" -acodec copy -vcodec copy -f mpegts "$NAME.ts" | tee -a "$LOG"
