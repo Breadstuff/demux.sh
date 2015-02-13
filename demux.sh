@@ -42,7 +42,7 @@ PROJECTX=$COMPATH/ProjectX.jar			# path to ProjectX
 MPLEX=/usr/local/bin/mplex				# path to mplex
 DVDAUTHOR=/usr/bin/dvdauthor			# path to dvdauthor
 MEDIAINFO=/usr/bin/mediainfo			# path to mediainfo
-FFMPEG=/usr/bin/ffmpeg					# path to ffmpeg
+#FFMPEG=/usr/bin/ffmpeg					# path to ffmpeg
 
 # check if inputfile is specified
 if [ ! "$INPUTFILE" ]
@@ -58,13 +58,15 @@ if [ ! "$INPUTPATH" ]
 fi
 
 #if inputfile *.mkv copy to *ts using ffmpeg
-if [ -f "$INPUTFILE.mkv" ]
-	then
-		NAME=$(basename "$INPUTFILE" .mkv)		# delete ext of filename
-		$FFMPEG -i "$INPUTFILE" -acodec copy -vcodec copy -f mpegts "$NAME.ts" | tee -a "$LOG"
-	else
+#if [ "$INPUTFILE" == "*.mkv" ]
+#	then
+#		NAME=$(basename "$INPUTFILE" .mkv)		# delete ext of filename
+#		echo "Hurra ein mkv"
+#		nice -n 19 ffmpeg -i "$INPUTFILE" -sn -vcodec copy -acodec copy -f mpegts "$NAME.ts" | tee -a "$LOG"
+#		$FFMPEG -i "$INPUTFILE" -i "$NAME.m2v" -vcodec copy -map 1:0 -acodec copy -map 0:1 -c:s copy -map 0:2 -f mpegts "$NAME.ts" | tee -a "$LOG"
+#	else
 		NAME=$(basename "$INPUTFILE" .ts)		# delete ext of filename
-fi
+#fi
 
 OUTPUTDIRECTORY="$COMPATH/$NAME"		# the output directory is a subdirectory in the inputdirectory
 LOG="$OUTPUTDIRECTORY/$NAME.log"		# the logfile is the inputfilename with ext log
@@ -91,14 +93,14 @@ echo "completepath: $COMPATH" | tee -a "$LOG"
 echo "workingpath: $WORKINGDIRECTORY" | tee -a "$LOG"
 echo "logfile: $LOG" | tee -a "$LOG"
 
-if [ ! -f "$COMPATH/$NAME.Xcl" && $COMSKIP ]
-	then
-		echo "-----------------------------------" | tee -a "$LOG"
-		/bin/date | tee -a "$LOG"
-		echo "run comskip for $INPUTFILE" | tee -a "$LOG"
-		comskip -t --ini=tveurope.ini $INPUTFILE | tee -a "$LOG"
-		cp "$NAME.ts.Xcl" "$COMPATH/$NAME.Xcl" #workourround wrong ext
-fi
+#if [ ! -f "$COMPATH/$NAME.Xcl" && $COMSKIP ]
+#	then
+#		echo "-----------------------------------" | tee -a "$LOG"
+#		/bin/date | tee -a "$LOG"
+#		echo "run comskip for $INPUTFILE" | tee -a "$LOG"
+#		comskip -t --ini=tveurope.ini $INPUTFILE | tee -a "$LOG"
+#		cp "$NAME.ts.Xcl" "$COMPATH/$NAME.Xcl" #workourround wrong ext
+#fi
 
 echo "-----------------------------------" | tee -a "$LOG"
 echo "demux file $INPUTFILE" | tee -a "$LOG"
@@ -110,22 +112,22 @@ if [ -f "$WORKINGDIRECTORY/$NAME.m2v" ]
 		echo "demuxed video files already existing" | tee -a "$LOG"
 	else
 		# read mediainfo and write to log
-		$MEDIAINFO "$INPUTPATH" | tee -a "$LOG"
+		nice -n 19 $MEDIAINFO "$INPUTPATH" | tee -a "$LOG"
 		
 		# check if cut information is exising
 		if [ -f "$COMPATH/$NAME.Xcl" ];
 			then
 				# use cut file
 				echo "found cut file" | tee -a "$LOG"
-				java -jar $COMPATH/ProjectX.jar "$INPUTPATH" -out "$WORKINGDIRECTORY" -name "$NAME" -cut "$COMPATH/$NAME.Xcl" | tee -a "$LOG"
+				nice -n 19 java -jar $COMPATH/ProjectX.jar "$INPUTPATH" -out "$WORKINGDIRECTORY" -name "$NAME" -cut "$COMPATH/$NAME.Xcl" | tee -a "$LOG"
 			else
 				echo "not found any cut file" | tee -a "$LOG"
-				java -jar $COMPATH/ProjectX.jar "$INPUTPATH"  -out "$WORKINGDIRECTORY" -name "$NAME" | tee -a "$LOG"
+				nice -n 19 java -jar $COMPATH/ProjectX.jar "$INPUTPATH"  -out "$WORKINGDIRECTORY" -name "$NAME" | tee -a "$LOG"
 		fi
 fi
 
 # workaround first audio track
-if [ -f $WORKINGDIRECTORY/$NAME.mp2 ]; then mv $WORKINGDIRECTORY/$NAME.mp2 $WORKINGDIRECTORY/$NAME-01.mp2; fi 
+if [ -f $WORKINGDIRECTORY/$NAME.mp2 ]; then mv $WORKINGDIRECTORY/$NAME.mp2 $WORKINGDIRECTORY/$NAME-01.mp2; fi
 
 
 #look for audio tracks in audio AUTO mode
@@ -133,7 +135,7 @@ if [ "$AUDIO" = "AUTO" ]
 	then
 		echo "-----------------------------------" | tee -a "$LOG"
 		if [ -f "$MEDIASAVE" ]; then rm "$MEDIASAVE"; fi
-		 #workarround ersten  3 sprachen übernehmen
+		 #workarround ersten  3 sprachen Ã¼bernehmen
 		if [ -f "${WORKINGDIRECTORY}/${NAME}_log.txt" ]; then grep "Audio:" -A 3 "${WORKINGDIRECTORY}/${NAME}_log.txt" -m 1 >>"$MEDIASAVE"; fi
 
 		#define languages
@@ -181,7 +183,7 @@ elif [ "$AUDIO" = "2" ]
 		LANGTAG1="de"
 		LANG1=$WORKINGDIRECTORY/$NAME-01.mp2
 
-		LANGTAG2="fr"
+		LANGTAG2="en"
 		LANG2=$WORKINGDIRECTORY/$NAME-02.mp2
 else
 	echo "exit: no language available" | tee -a "$LOG"
@@ -200,16 +202,16 @@ echo "mux in new file $NAME.mpg" | tee -a "$LOG"
 
 if [ "$LANG" -eq 1 ]
 	then
-		$MPLEX -f 8 -M -o "$WORKINGDIRECTORY/$NAME.mpg" "$WORKINGDIRECTORY/$NAME.m2v" "$LANG1" | tee -a "$LOG"
-		if [ $MODE != MPEG ]; then $DVDAUTHOR -o "$OUTPUTDIRECTORY" -t "$WORKINGDIRECTORY/$NAME.mpg" -a mp2+$LANGTAG1 | tee -a "$LOG"; fi
+		nice -n 19 $MPLEX -f 8 -M -o "$WORKINGDIRECTORY/$NAME.mpg" "$WORKINGDIRECTORY/$NAME.m2v" "$LANG1" | tee -a "$LOG"
+		if [ $MODE != MPEG ]; then nice -n 19 $DVDAUTHOR -o "$OUTPUTDIRECTORY" -t "$WORKINGDIRECTORY/$NAME.mpg" -a mp2+$LANGTAG1 | tee -a "$LOG"; fi
 elif [ "$LANG" -eq 2 ]
 	then
-		$MPLEX -f 8 -M -o "$WORKINGDIRECTORY/$NAME.mpg" "$WORKINGDIRECTORY/$NAME.m2v" "$LANG1" "$LANG2"| tee -a "$LOG"
-		if [ $MODE != MPEG ]; then $DVDAUTHOR -o "$OUTPUTDIRECTORY" -t "$WORKINGDIRECTORY/$NAME.mpg" -a mp2+$LANGTAG1,mp2+$LANGTAG2 | tee -a "$LOG"; fi
+		nice -n 19 $MPLEX -f 8 -M -o "$WORKINGDIRECTORY/$NAME.mpg" "$WORKINGDIRECTORY/$NAME.m2v" "$LANG1" "$LANG2"| tee -a "$LOG"
+		if [ $MODE != MPEG ]; then nice -n 19 $DVDAUTHOR -o "$OUTPUTDIRECTORY" -t "$WORKINGDIRECTORY/$NAME.mpg" -a mp2+$LANGTAG1,mp2+$LANGTAG2 | tee -a "$LOG"; fi
 elif [ "$LANG" -eq 3 ]
 	then
-		$MPLEX -f 8 -M -o "$WORKINGDIRECTORY/$NAME.mpg" "$WORKINGDIRECTORY/$NAME.m2v" "$LANG1" "$LANG2" "$LANG3"| tee -a "$LOG"
-		if [ $MODE != MPEG ]; then $DVDAUTHOR -o "$OUTPUTDIRECTORY" -t "$WORKINGDIRECTORY/$NAME.mpg" -a mp2+$LANGTAG1,mp2+$LANGTAG2,mp2+$LANGTAG3 | tee -a "$LOG"; fi
+		nice -n 19 $MPLEX -f 8 -M -o "$WORKINGDIRECTORY/$NAME.mpg" "$WORKINGDIRECTORY/$NAME.m2v" "$LANG1" "$LANG2" "$LANG3"| tee -a "$LOG"
+		if [ $MODE != MPEG ]; then nice -n 19 $DVDAUTHOR -o "$OUTPUTDIRECTORY" -t "$WORKINGDIRECTORY/$NAME.mpg" -a mp2+$LANGTAG1,mp2+$LANGTAG2,mp2+$LANGTAG3 | tee -a "$LOG"; fi
 else 
 	echo "exit: no language file to mux" | tee -a "$LOG"
 	exit
@@ -219,7 +221,7 @@ echo "-----------------------------------" | tee -a "$LOG"
 /bin/date | tee -a "$LOG"
 echo "authoring dvd" | tee -a "$LOG"
 export VIDEO_FORMAT=PAL
-if [ "$MODE" != "MPEG" ]; then $DVDAUTHOR -o "$OUTPUTDIRECTORY" -T | tee -a "$LOG"; fi
+if [ "$MODE" != "MPEG" ]; then nice -n 19 $DVDAUTHOR -o "$OUTPUTDIRECTORY" -T | tee -a "$LOG"; fi
 
 echo "-----------------------------------" | tee -a "$LOG"
 /bin/date | tee -a "$LOG"
