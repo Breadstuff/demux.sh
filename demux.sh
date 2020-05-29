@@ -1,5 +1,5 @@
 #!/bin/bash
-# demux.sh, by exzessiv@posteo.de
+# demux.sh, by lakeconstance78@wolke7.net
 #
 # this script: 
 # 				1. demux a MPEG-2 (TS) (using ProjectX).
